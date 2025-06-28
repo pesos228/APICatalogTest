@@ -8,10 +8,10 @@ import (
 )
 
 type Product struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Price     float64   `json:"price"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID        string    `json:"id" db:"id"`
+	Name      string    `json:"name" db:"name"`
+	Price     float64   `json:"price" db:"price"`
+	CreatedAt time.Time `json:"createdAt" db:"created_at"`
 }
 
 func NewProduct(name string, price float64) (*Product, error) {

@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"api/test/catalog/internal/repository"
 	"api/test/catalog/internal/service"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -23,9 +26,18 @@ type productHandler struct {
 }
 
 func (h *productHandler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
+	products, err := h.service.FindAll(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(h.service.FindAll())
+	err = json.NewEncoder(w).Encode(products)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error encoding products to JSON: %v", err), http.StatusInternalServerError)
+	}
 }
 
 func (h *productHandler) SaveProduct(w http.ResponseWriter, r *http.Request) {
@@ -36,9 +48,9 @@ func (h *productHandler) SaveProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.Save(req.Name, req.Price)
+	id, err := h.service.Save(r.Context(), req.Name, req.Price)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -54,9 +66,13 @@ func (h *productHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.service.FindById(id)
+	product, err := h.service.FindById(r.Context(), id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if errors.Is(err, repository.ErrProductNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -74,9 +90,14 @@ func (h *productHandler) DeleteProductById(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := h.service.DeleteById(id)
+	err := h.service.DeleteById(r.Context(), id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if errors.Is(err, repository.ErrProductNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -98,9 +119,14 @@ func (h *productHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.Update(id, req.Name, req.Price)
+	err = h.service.Update(r.Context(), id, req.Name, req.Price)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, repository.ErrProductNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

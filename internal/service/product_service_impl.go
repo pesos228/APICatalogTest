@@ -3,14 +3,15 @@ package service
 import (
 	"api/test/catalog/internal/domain"
 	"api/test/catalog/internal/repository"
+	"context"
 )
 
 type productService struct {
 	repo repository.ProductRepository
 }
 
-func (p *productService) Update(id string, name string, price float64) error {
-	product, err := p.repo.FindById(id)
+func (p *productService) Update(ctx context.Context, id string, name string, price float64) error {
+	product, err := p.repo.FindById(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -25,43 +26,43 @@ func (p *productService) Update(id string, name string, price float64) error {
 		return err
 	}
 
-	err = p.repo.Save(product)
+	err = p.repo.Save(ctx, product)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *productService) DeleteById(id string) error {
-	err := p.repo.DeleteById(id)
+func (p *productService) DeleteById(ctx context.Context, id string) error {
+	err := p.repo.DeleteById(ctx, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *productService) FindAll() []*domain.Product {
-	products, err := p.repo.FindAll()
+func (p *productService) FindAll(ctx context.Context) ([]*domain.Product, error) {
+	products, err := p.repo.FindAll(ctx)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return products
+	return products, nil
 }
 
-func (p *productService) FindById(id string) (*domain.Product, error) {
-	product, err := p.repo.FindById(id)
+func (p *productService) FindById(ctx context.Context, id string) (*domain.Product, error) {
+	product, err := p.repo.FindById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return product, nil
 }
 
-func (p *productService) Save(name string, price float64) (string, error) {
+func (p *productService) Save(ctx context.Context, name string, price float64) (string, error) {
 	product, err := domain.NewProduct(name, price)
 	if err != nil {
 		return "", err
 	}
-	err = p.repo.Save(product)
+	err = p.repo.Save(ctx, product)
 	if err != nil {
 		return "", err
 	}

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"api/test/catalog/internal/domain"
+	"context"
 	"errors"
 	"sync"
 )
@@ -11,14 +12,14 @@ type inMemoryProductRepository struct {
 	products map[string]*domain.Product
 }
 
-func (r *inMemoryProductRepository) Save(product *domain.Product) error {
+func (r *inMemoryProductRepository) Save(ctx context.Context, product *domain.Product) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	r.products[product.ID] = product
 	return nil
 }
 
-func (r *inMemoryProductRepository) FindById(id string) (*domain.Product, error) {
+func (r *inMemoryProductRepository) FindById(ctx context.Context, id string) (*domain.Product, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	product, ok := r.products[id]
@@ -30,7 +31,7 @@ func (r *inMemoryProductRepository) FindById(id string) (*domain.Product, error)
 	return product, nil
 }
 
-func (r *inMemoryProductRepository) FindAll() ([]*domain.Product, error) {
+func (r *inMemoryProductRepository) FindAll(ctx context.Context) ([]*domain.Product, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -42,7 +43,7 @@ func (r *inMemoryProductRepository) FindAll() ([]*domain.Product, error) {
 	return res, nil
 }
 
-func (r *inMemoryProductRepository) DeleteById(id string) error {
+func (r *inMemoryProductRepository) DeleteById(ctx context.Context, id string) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
