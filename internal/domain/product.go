@@ -8,7 +8,7 @@ import (
 )
 
 type Product struct {
-	ID        string    `json:"id" db:"id"`
+	ID        string    `json:"id" db:"id" gorm:"type:uuid;primary_key;index;"`
 	Name      string    `json:"name" db:"name"`
 	Price     float64   `json:"price" db:"price"`
 	CreatedAt time.Time `json:"createdAt" db:"created_at"`

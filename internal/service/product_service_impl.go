@@ -4,6 +4,8 @@ import (
 	"api/test/catalog/internal/domain"
 	"api/test/catalog/internal/repository"
 	"context"
+	"errors"
+	"fmt"
 )
 
 type productService struct {
@@ -36,6 +38,9 @@ func (p *productService) Update(ctx context.Context, id string, name string, pri
 func (p *productService) DeleteById(ctx context.Context, id string) error {
 	err := p.repo.DeleteById(ctx, id)
 	if err != nil {
+		if errors.Is(err, repository.ErrProductNotFound) {
+			return fmt.Errorf("%w: product with id '%s'", repository.ErrProductNotFound, id)
+		}
 		return err
 	}
 	return nil
@@ -52,6 +57,9 @@ func (p *productService) FindAll(ctx context.Context) ([]*domain.Product, error)
 func (p *productService) FindById(ctx context.Context, id string) (*domain.Product, error) {
 	product, err := p.repo.FindById(ctx, id)
 	if err != nil {
+		if errors.Is(err, repository.ErrProductNotFound) {
+			return nil, fmt.Errorf("%w: product with id '%s'", repository.ErrProductNotFound, id)
+		}
 		return nil, err
 	}
 	return product, nil

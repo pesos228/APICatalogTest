@@ -2,26 +2,28 @@ package app
 
 import (
 	"api/test/catalog/internal/config"
+	"api/test/catalog/internal/domain"
 	"api/test/catalog/internal/handler"
 	"api/test/catalog/internal/repository"
 	"api/test/catalog/internal/service"
-	"context"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func Run(cfg *config.Config) {
-	dgpool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
+	db, err := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Connection to DB failed : %v", err)
 	}
-	defer dgpool.Close()
 
-	productRepository := repository.NewPostgresProductRepository(dgpool)
+	db.AutoMigrate(&domain.Product{})
+
+	productRepository := repository.NewGormProductRepository(db)
 	productService := service.NewProductService(productRepository)
 	productHandler := handler.NewProductHandler(productService)
 
