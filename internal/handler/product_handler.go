@@ -62,7 +62,7 @@ func (h *productHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	w.Header().Set("Content-Type", "application/json")
 	if id == "" {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Product ID is missing in URL", http.StatusBadRequest)
 		return
 	}
 
